@@ -1,4 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
+
+import 'quizzBrain.dart';
+
+QuizzBrain quizzBrain = QuizzBrain();
 
 void main() => runApp(Quizzler());
 
@@ -25,6 +32,72 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
+  List<Icon> ListScore = [];
+  int compteurJuste = 0;
+  int compteurFaux = 0;
+  int totalQuestion = quizzBrain.totalQuestion();
+  void checkAnswer(bool userPickerAnswer) {
+    bool correctAnswer = quizzBrain.getQuestionAnswer();
+    setState(() {
+      if (userPickerAnswer == correctAnswer) {
+        compteurJuste++;
+        ListScore.add(
+          Icon(
+            Icons.check,
+            color: Colors.green,
+          ),
+        );
+      } else {
+        compteurFaux++;
+        ListScore.add(
+          Icon(
+            Icons.close,
+            color: Colors.red,
+          ),
+        );
+      }
+    });
+
+    quizzBrain.nextQuestion();
+
+    if (quizzBrain.getStatutParti() == true) {
+      setState(() {
+        ListScore.clear();
+        Alert(
+          context: context,
+          type: AlertType.success,
+          title: "Partie Terminer",
+          desc:
+              "Vous avez eu $compteurJuste/$totalQuestion \n tu a fait $compteurFaux fautes.",
+          buttons: [
+            DialogButton(
+              child: Text(
+                "Rejouer",
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                quizzBrain.NewPartie();
+                compteurJuste = 0;
+                compteurFaux = 0;
+              },
+              width: 120,
+            )
+          ],
+        ).show();
+      });
+    }
+  }
+
+  void checkFinishPartie() {
+    if (quizzBrain.getIndexQuestion() == quizzBrain.totalQuestion()) {
+      print(quizzBrain.totalQuestion());
+      Future.delayed(const Duration(milliseconds: 500), () {
+      quizzBrain.finishPartie();
+      };
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -37,7 +110,7 @@ class _QuizPageState extends State<QuizPage> {
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                'This is where the question text will go.',
+                quizzBrain.getQuestionText(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 25.0,
@@ -54,14 +127,16 @@ class _QuizPageState extends State<QuizPage> {
               textColor: Colors.white,
               color: Colors.green,
               child: Text(
-                'True',
+                'Vrai',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20.0,
                 ),
               ),
               onPressed: () {
-                //The user picked true.
+                checkAnswer(true);
+
+                  checkFinishPartie();
               },
             ),
           ),
@@ -72,19 +147,24 @@ class _QuizPageState extends State<QuizPage> {
             child: FlatButton(
               color: Colors.red,
               child: Text(
-                'False',
+                'Faux',
                 style: TextStyle(
                   fontSize: 20.0,
                   color: Colors.white,
                 ),
               ),
               onPressed: () {
-                //The user picked false.
+                checkAnswer(false);
+
+                  checkFinishPartie();
+
               },
             ),
           ),
         ),
-        //TODO: Add a Row here as your score keeper
+        Row(
+          children: ListScore,
+        ),
       ],
     );
   }
