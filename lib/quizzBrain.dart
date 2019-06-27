@@ -30,31 +30,10 @@ class QuizzBrain {
   ];
   void nextQuestion() {
     if (_indexQuestion < _QuestionBank.length - 1) {
+      print(_indexQuestion);
+
       _indexQuestion++;
-      print(_QuestionBank.length);
     }
-  }
-
-  int totalQuestion() {
-    return _QuestionBank.length;
-  }
-
-  void NewPartie() {
-    print('partie fini');
-    _indexQuestion = 0;
-    _partieFinie = false;
-  }
-
-  void finishPartie() {
-    _partieFinie = true;
-  }
-
-  bool getStatutParti() {
-    return _partieFinie;
-  }
-
-  int getIndexQuestion() {
-    return _indexQuestion;
   }
 
   String getQuestionText() {
@@ -63,5 +42,21 @@ class QuizzBrain {
 
   bool getQuestionAnswer() {
     return _QuestionBank[_indexQuestion].questionAnswer;
+  }
+
+  int totalQuestion() {
+    return _QuestionBank.length;
+  }
+
+  void reset() {
+    _indexQuestion = 0;
+  }
+
+  bool partieFinish() {
+    if (_indexQuestion >= _QuestionBank.length - 1) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }

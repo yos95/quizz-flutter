@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 
@@ -35,40 +33,17 @@ class _QuizPageState extends State<QuizPage> {
   List<Icon> ListScore = [];
   int compteurJuste = 0;
   int compteurFaux = 0;
-  int totalQuestion = quizzBrain.totalQuestion();
+  int totalQuestion = quizzBrain.totalQuestion() - 1;
   void checkAnswer(bool userPickerAnswer) {
     bool correctAnswer = quizzBrain.getQuestionAnswer();
     setState(() {
-      if (userPickerAnswer == correctAnswer) {
-        compteurJuste++;
-        ListScore.add(
-          Icon(
-            Icons.check,
-            color: Colors.green,
-          ),
-        );
-      } else {
-        compteurFaux++;
-        ListScore.add(
-          Icon(
-            Icons.close,
-            color: Colors.red,
-          ),
-        );
-      }
-    });
-
-    quizzBrain.nextQuestion();
-
-    if (quizzBrain.getStatutParti() == true) {
-      setState(() {
-        ListScore.clear();
+      if (quizzBrain.partieFinish()) {
         Alert(
           context: context,
           type: AlertType.success,
           title: "Partie Terminer",
           desc:
-              "Vous avez eu $compteurJuste/$totalQuestion \n tu a fait $compteurFaux fautes.",
+              "Vous avez eu $compteurJuste/$totalQuestion \n tu a fait $compteurFaux  fautes.",
           buttons: [
             DialogButton(
               child: Text(
@@ -76,26 +51,35 @@ class _QuizPageState extends State<QuizPage> {
                 style: TextStyle(color: Colors.white, fontSize: 20),
               ),
               onPressed: () {
-                Navigator.pop(context);
-                quizzBrain.NewPartie();
-                compteurJuste = 0;
-                compteurFaux = 0;
+                setState(() {
+                  quizzBrain.reset();
+                  compteurJuste = 0;
+                  compteurFaux = 0;
+                  ListScore = [];
+                  Navigator.pop(context);
+                });
               },
               width: 120,
             )
           ],
         ).show();
-      });
-    }
-  }
-
-  void checkFinishPartie() {
-    if (quizzBrain.getIndexQuestion() == quizzBrain.totalQuestion()) {
-      print(quizzBrain.totalQuestion());
-      Future.delayed(const Duration(milliseconds: 500), () {
-      quizzBrain.finishPartie();
-      };
-    }
+      } else {
+        if (userPickerAnswer == correctAnswer) {
+          compteurJuste++;
+          ListScore.add(Icon(
+            Icons.check,
+            color: Colors.green,
+          ));
+        } else {
+          compteurFaux++;
+          ListScore.add(Icon(
+            Icons.close,
+            color: Colors.red,
+          ));
+        }
+        quizzBrain.nextQuestion();
+      }
+    });
   }
 
   @override
@@ -135,8 +119,6 @@ class _QuizPageState extends State<QuizPage> {
               ),
               onPressed: () {
                 checkAnswer(true);
-
-                  checkFinishPartie();
               },
             ),
           ),
@@ -155,9 +137,6 @@ class _QuizPageState extends State<QuizPage> {
               ),
               onPressed: () {
                 checkAnswer(false);
-
-                  checkFinishPartie();
-
               },
             ),
           ),
